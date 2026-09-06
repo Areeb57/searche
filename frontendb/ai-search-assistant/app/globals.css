@@ -1,0 +1,177 @@
+/* ─── CSS Variables — Light ─────────────────────────────────── */
+:root {
+  --bg-primary:    #ffffff;
+  --bg-secondary:  #f7f7f8;
+  --bg-tertiary:   #eeeeef;
+  --surface:       #ffffff;
+  --surface-hover: #f2f2f3;
+  --surface-active:#eaeaeb;
+
+  --text-primary:   #111111;
+  --text-secondary: #5f5f6e;
+  --text-tertiary:  #9898a8;
+  --text-inverse:   #ffffff;
+
+  --border:        #e4e4e7;
+  --border-strong: #cdcdd4;
+
+  --accent:        #2563eb;
+  --accent-hover:  #1d4ed8;
+  --accent-light:  #eff6ff;
+  --accent-subtle: #dbeafe;
+
+  --success:  #16a34a;
+  --warning:  #d97706;
+  --error:    #dc2626;
+
+  --user-bubble:        #eef2ff;
+  --user-bubble-border: #c7d2fe;
+
+  --sidebar-bg:    #f7f7f8;
+  --sidebar-width: 272px;
+  --header-height: 54px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 28px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.05);
+  --shadow-xl: 0 20px 60px rgba(0,0,0,0.14), 0 8px 16px rgba(0,0,0,0.06);
+
+  --radius-sm:   5px;
+  --radius-md:   9px;
+  --radius-lg:   13px;
+  --radius-xl:   18px;
+  --radius-full: 9999px;
+
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:   ui-monospace, 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+
+  --transition-fast: 0.12s ease;
+  --transition-base: 0.20s ease;
+  --transition-slow: 0.30s ease;
+}
+
+/* ─── Dark Theme ─────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-primary:    #171717;
+  --bg-secondary:  #111111;
+  --bg-tertiary:   #202020;
+  --surface:       #1f1f1f;
+  --surface-hover: #2a2a2a;
+  --surface-active:#333333;
+
+  --text-primary:   #ededed;
+  --text-secondary: #9898a8;
+  --text-tertiary:  #636373;
+  --text-inverse:   #111111;
+
+  --border:        #2b2b2b;
+  --border-strong: #3a3a3a;
+
+  --accent:        #3b82f6;
+  --accent-hover:  #60a5fa;
+  --accent-light:  #172043;
+  --accent-subtle: #1e3358;
+
+  --user-bubble:        #1c2d50;
+  --user-bubble-border: #2a4070;
+
+  --sidebar-bg: #111111;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.40);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.50);
+  --shadow-lg: 0 8px 28px rgba(0,0,0,0.60);
+  --shadow-xl: 0 20px 60px rgba(0,0,0,0.70);
+}
+
+/* ─── Reset ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  font-family: var(--font-family);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden; /* prevent body scroll; inner containers scroll */
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { cursor: pointer; font-family: var(--font-family); border: none; }
+img { max-width: 100%; display: block; }
+
+/* ─── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* ─── Focus ──────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Selection ──────────────────────────────────────────────── */
+::selection { background: var(--accent-subtle); color: var(--text-primary); }
+
+/* ─── Reduced motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── App layout ─────────────────────────────────────────────── */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-primary);
+  transition: margin-left var(--transition-slow);
+}
+
+/* ─── Mobile overlay ─────────────────────────────────────────── */
+.app-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 45;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.app-overlay.visible {
+  display: block;
+  animation: overlayFade 0.2s ease;
+}
+
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

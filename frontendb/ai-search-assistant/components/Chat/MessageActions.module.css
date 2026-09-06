@@ -1,0 +1,66 @@
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  margin-top: 10px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+/* Parent hover — works because the parent renders this via JSX in same scope */
+.aiContent:hover .actions,
+.aiContent:focus-within .actions {
+  opacity: 1;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+.btnActive {
+  color: var(--accent);
+}
+.btnActive:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.btnSuccess {
+  color: var(--success);
+}
+.btnSuccess:hover {
+  background: #f0fdf4;
+  color: var(--success);
+}
+
+[data-theme="dark"] .btnSuccess:hover {
+  background: #0d2412;
+}
+
+.divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+@media (max-width: 768px) {
+  .actions {
+    opacity: 1;
+  }
+}

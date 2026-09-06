@@ -1,0 +1,249 @@
+/* ─── User Message ─── */
+.userMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 6px 0;
+  animation: messageIn 0.2s ease;
+}
+
+.userBubble {
+  max-width: 72%;
+  background: var(--user-bubble);
+  border: 1px solid var(--user-bubble-border);
+  border-radius: 18px 18px 4px 18px;
+  padding: 11px 16px;
+}
+
+.userText {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ─── AI Message ─── */
+.aiMessage {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  animation: messageIn 0.2s ease;
+}
+
+.aiAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.aiContent {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Hover reveals actions */
+.aiMessage:hover .actions,
+.aiMessage:focus-within .actions {
+  opacity: 1;
+}
+
+/* AI Text (markdown) */
+.aiText {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.aiText :global(p) {
+  margin-bottom: 10px;
+}
+.aiText :global(p:last-child) {
+  margin-bottom: 0;
+}
+
+.aiText :global(h1),
+.aiText :global(h2),
+.aiText :global(h3) {
+  font-weight: 600;
+  margin: 18px 0 6px;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+.aiText :global(h1) { font-size: 19px; }
+.aiText :global(h2) { font-size: 16px; }
+.aiText :global(h3) { font-size: 14.5px; }
+
+.aiText :global(strong) {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.aiText :global(em) {
+  font-style: italic;
+}
+
+.aiText :global(ul),
+.aiText :global(ol) {
+  margin: 6px 0 10px 22px;
+}
+.aiText :global(li) {
+  margin-bottom: 4px;
+  line-height: 1.65;
+}
+
+.aiText :global(.code-block-wrap) {
+  position: relative;
+  margin: 12px 0;
+}
+
+.aiText :global(.code-lang) {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 14px 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.aiText :global(.code-block) {
+  display: block;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.aiText :global(.code-lang + .code-block) {
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.aiText :global(.inline-code) {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.aiText :global(table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 14px;
+  display: block;
+  overflow-x: auto;
+}
+.aiText :global(th) {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.aiText :global(td) {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+}
+.aiText :global(tr:nth-child(even) td) {
+  background: var(--bg-secondary);
+}
+
+.aiText :global(blockquote) {
+  border-left: 3px solid var(--accent);
+  padding: 6px 14px;
+  margin: 10px 0;
+  color: var(--text-secondary);
+  background: var(--accent-light);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-style: italic;
+}
+
+.aiText :global(hr) {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+
+.aiText :global(a) {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.aiText :global(a:hover) {
+  opacity: 0.8;
+}
+
+/* Streaming cursor */
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 17px;
+  background: var(--accent);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.75s step-end infinite;
+  border-radius: 1px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Actions wrapper — opacity set via inline style from React hover state */
+.actionsWrap {
+  transition: opacity 0.15s ease;
+}
+
+/* Always show on touch devices */
+@media (hover: none) {
+  .actionsWrap {
+    opacity: 1 !important;
+  }
+}
+
+/* Timestamp */
+.timestamp {
+  display: block;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 6px;
+}
+
+/* Animation */
+@keyframes messageIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .userBubble {
+    max-width: 88%;
+  }
+}
