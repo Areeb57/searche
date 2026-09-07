@@ -13,7 +13,7 @@ const steps = [
 export default function SearchProgress({
     currentStep = 1,
 }) {
-    const [expanded, setExpanded] = useState(true);
+    const [expanded, setExpanded] = useState(false);
 
     return (
         <div className="search-progress">

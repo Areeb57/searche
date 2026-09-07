@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
@@ -115,11 +115,14 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] =
     useState(false);
 
+  const [messages, setMessages] = useState([]);
+
   const [input, setInput] = useState("");
 
   const [isLoading, setIsLoading] =
     useState(false);
 
+  const stopRef = useRef(false);
   // --------------------------------
   // Settings state
   // --------------------------------
@@ -432,6 +435,7 @@ export default function Home() {
   // Stop response
   // --------------------------------
   function handleStop() {
+    stopRef.current = true;
     setIsLoading(false);
   }
 
@@ -505,6 +509,7 @@ export default function Home() {
       aiMessage,
     ];
 
+    stopRef.current = false;
     // Add user + AI message
     setChats((previousChats) =>
       previousChats.map((item) => {
@@ -617,12 +622,18 @@ export default function Home() {
       // --------------------------------
 
       if (streaming) {
-        let streamedText = "";
+        for (let i = 0; i < result.response.length; i++) {
+          if (stopRef.current) {
+            break;
+          }
 
-        for (
-          const character of result.response
-        ) {
-          streamedText += character;
+          await new Promise((resolve) =>
+            setTimeout(resolve, 12)
+          );
+
+          if (stopRef.current) {
+            break;
+          }
 
           updateMessages(
             currentChatId,
@@ -631,17 +642,13 @@ export default function Home() {
                 message.id === aiMessageId
                   ? {
                     ...message,
-                    content:
-                      streamedText,
+                    content: result.response.slice(0, i + 1),
                   }
                   : message
               )
           );
-
-          await wait(12);
         }
       } else {
-        // Non-streaming response
         updateMessages(
           currentChatId,
           (messages) =>
@@ -649,8 +656,7 @@ export default function Home() {
               message.id === aiMessageId
                 ? {
                   ...message,
-                  content:
-                    result.response,
+                  content: result.response,
                 }
                 : message
             )

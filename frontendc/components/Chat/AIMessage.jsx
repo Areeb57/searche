@@ -11,7 +11,6 @@ export default function AIMessage({
     return (
         <div className="message ai-message">
             <div className="message-content">
-                <div className="message-role">AI Search</div>
 
                 {message.searchStep && (
                     <SearchProgress currentStep={message.searchStep} />
@@ -29,6 +28,7 @@ export default function AIMessage({
                     message={message.content}
                     onRegenerate={onRegenerate}
                 />
+
             </div>
         </div>
     );
