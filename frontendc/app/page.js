@@ -48,7 +48,7 @@ const initialChats = [
   {
     id: "chat-1",
     title: "AI Search Assistant",
-    createdAt: Date.now(),
+    createdAt: 1000000000000,
     group: "Today",
     messages: [],
   },
@@ -56,7 +56,7 @@ const initialChats = [
   {
     id: "chat-2",
     title: "React project help",
-    createdAt: Date.now() - 1000 * 60 * 30,
+    createdAt: 999999999000,
     group: "Today",
     messages: [
       {
@@ -76,7 +76,7 @@ const initialChats = [
   {
     id: "chat-3",
     title: "Best laptops",
-    createdAt: Date.now() - 1000 * 60 * 60,
+    createdAt: 999999998000,
     group: "Today",
     messages: [],
   },
@@ -84,8 +84,7 @@ const initialChats = [
   {
     id: "chat-4",
     title: "Python project",
-    createdAt:
-      Date.now() - 1000 * 60 * 60 * 24,
+    createdAt: 999999997000,
     group: "Yesterday",
     messages: [],
   },
@@ -93,35 +92,18 @@ const initialChats = [
   {
     id: "chat-5",
     title: "Web development",
-    createdAt:
-      Date.now() - 1000 * 60 * 60 * 25,
+    createdAt: 999999996000,
     group: "Yesterday",
     messages: [],
   },
 ];
 
 export default function Home() {
-  const [chats, setChats] = useState(() => {
-    if (typeof window === "undefined") {
-      return initialChats;
-    }
+  const [chats, setChats] = useState(initialChats);
 
-    try {
-      const savedChats =
-        localStorage.getItem("ai-search-chats");
+  const [isHydrated, setIsHydrated] =
+    useState(false);
 
-      if (savedChats) {
-        return JSON.parse(savedChats);
-      }
-    } catch (error) {
-      console.error(
-        "Could not load saved chats:",
-        error
-      );
-    }
-
-    return initialChats;
-  });
 
   const [currentChatId, setCurrentChatId] =
     useState("chat-1");
@@ -150,8 +132,41 @@ export default function Home() {
     (chat) => chat.id === currentChatId
   );
 
+
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (!isHydrated || chats.length === 0) {
+      return;
+    }
+
+    const chatExists = chats.some(
+      (chat) => chat.id === currentChatId
+    );
+
+    if (!chatExists) {
+      setCurrentChatId(chats[0].id);
+    }
+  }, [chats, currentChatId, isHydrated]);
+
+  useEffect(() => {
+    try {
+      const savedChats =
+        localStorage.getItem("ai-search-chats");
+
+      if (savedChats) {
+        setChats(JSON.parse(savedChats));
+      }
+    } catch (error) {
+      console.error(
+        "Could not load saved chats:",
+        error
+      );
+    } finally {
+      setIsHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) {
       return;
     }
 
@@ -166,7 +181,7 @@ export default function Home() {
         error
       );
     }
-  }, [chats]);
+  }, [chats, isHydrated]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -538,6 +553,7 @@ export default function Home() {
         sidebarOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onNewChat={createNewChat}
+        onSelectChat={selectChat}
         onOpenSettings={() =>
           setSettingsOpen(true)
         }
