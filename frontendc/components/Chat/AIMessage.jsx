@@ -10,29 +10,19 @@ export default function AIMessage({
 }) {
     return (
         <div className="message ai-message">
-            <div className="message-avatar ai-avatar">
-                AI
-            </div>
-
             <div className="message-content">
-                <div className="message-role">
-                    AI Search
-                </div>
+                <div className="message-role">AI Search</div>
 
                 {message.searchStep && (
-                    <SearchProgress
-                        currentStep={message.searchStep || 4}
-                    />
+                    <SearchProgress currentStep={message.searchStep} />
                 )}
 
                 <div className="message-text ai-text">
                     {message.content}
                 </div>
 
-                {message.sources && (
-                    <SearchResults
-                        sources={message.sources}
-                    />
+                {message.sources && message.sources.length > 0 && (
+                    <SearchResults sources={message.sources} />
                 )}
 
                 <MessageActions

@@ -1132,8 +1132,7 @@ textarea {
 
 
 .user-message .message-content {
-  flex: 0 1 auto;
-
+  width: auto;
   max-width: min(760px, 80%);
 
   display: flex;
@@ -1164,12 +1163,6 @@ textarea {
 
   line-height: 1.55;
 }
-
-
-.user-message .message-avatar {
-  flex-shrink: 0;
-}
-
 
 .ai-avatar {
   background: var(--accent);
