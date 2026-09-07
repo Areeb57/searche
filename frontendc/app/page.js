@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import ChatWindow from "@/components/Chat/ChatWindow";
 import SettingsModal from "@/components/Settings/SettingsModal";
+import MessageInput from "@/components/Input/MessageInput";
 
 import { sendMessage } from "@/lib/api";
 
@@ -99,11 +100,14 @@ const initialChats = [
 ];
 
 export default function Home() {
+  // --------------------------------
+  // Chat state
+  // --------------------------------
+
   const [chats, setChats] = useState(initialChats);
 
   const [isHydrated, setIsHydrated] =
     useState(false);
-
 
   const [currentChatId, setCurrentChatId] =
     useState("chat-1");
@@ -115,6 +119,10 @@ export default function Home() {
 
   const [isLoading, setIsLoading] =
     useState(false);
+
+  // --------------------------------
+  // Settings state
+  // --------------------------------
 
   const [settingsOpen, setSettingsOpen] =
     useState(false);
@@ -128,10 +136,17 @@ export default function Home() {
   const [streaming, setStreaming] =
     useState(true);
 
+  // --------------------------------
+  // Current chat
+  // --------------------------------
+
   const currentChat = chats.find(
     (chat) => chat.id === currentChatId
   );
 
+  // --------------------------------
+  // Make sure current chat exists
+  // --------------------------------
 
   useEffect(() => {
     if (!isHydrated || chats.length === 0) {
@@ -145,12 +160,26 @@ export default function Home() {
     if (!chatExists) {
       setCurrentChatId(chats[0].id);
     }
-  }, [chats, currentChatId, isHydrated]);
+  }, [
+    chats,
+    currentChatId,
+    isHydrated,
+  ]);
+
+  // --------------------------------
+  // Load saved chats
+  // --------------------------------
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
     try {
       const savedChats =
-        localStorage.getItem("ai-search-chats");
+        localStorage.getItem(
+          "ai-search-chats"
+        );
 
       if (savedChats) {
         setChats(JSON.parse(savedChats));
@@ -164,6 +193,10 @@ export default function Home() {
       setIsHydrated(true);
     }
   }, []);
+
+  // --------------------------------
+  // Save chats
+  // --------------------------------
 
   useEffect(() => {
     if (!isHydrated) {
@@ -183,18 +216,29 @@ export default function Home() {
     }
   }, [chats, isHydrated]);
 
+  // --------------------------------
+  // Update chat groups every minute
+  // --------------------------------
+
   useEffect(() => {
     const interval = setInterval(() => {
       setChats((previousChats) =>
         previousChats.map((chat) => ({
           ...chat,
-          group: getChatGroup(chat.createdAt),
+          group: getChatGroup(
+            chat.createdAt
+          ),
         }))
       );
     }, 60 * 1000);
 
-    return () => clearInterval(interval);
+    return () =>
+      clearInterval(interval);
   }, []);
+
+  // --------------------------------
+  // Load saved settings
+  // --------------------------------
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -217,16 +261,23 @@ export default function Home() {
           "ai-search-streaming"
         );
 
-      if (savedTheme) {
+      // Theme
+      if (
+        savedTheme === "light" ||
+        savedTheme === "dark" ||
+        savedTheme === "system"
+      ) {
         setTheme(savedTheme);
       }
 
+      // Enter to send
       if (savedEnterToSend !== null) {
         setEnterToSend(
           savedEnterToSend === "true"
         );
       }
 
+      // Streaming
       if (savedStreaming !== null) {
         setStreaming(
           savedStreaming === "true"
@@ -240,17 +291,23 @@ export default function Home() {
     }
   }, []);
 
+  // --------------------------------
+  // Apply theme
+  // --------------------------------
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
-    const root =
-      document.documentElement;
+    const root = document.documentElement;
 
     if (theme === "system") {
+      // Remove manual theme so CSS can use
+      // prefers-color-scheme
       root.removeAttribute("data-theme");
     } else {
+      // Apply manually selected theme
       root.setAttribute(
         "data-theme",
         theme
@@ -263,6 +320,10 @@ export default function Home() {
     );
   }, [theme]);
 
+  // --------------------------------
+  // Save Enter-to-send setting
+  // --------------------------------
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -273,6 +334,10 @@ export default function Home() {
       String(enterToSend)
     );
   }, [enterToSend]);
+
+  // --------------------------------
+  // Save streaming setting
+  // --------------------------------
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -285,6 +350,16 @@ export default function Home() {
     );
   }, [streaming]);
 
+  // --------------------------------
+  // Create handle suggenstion
+  // --------------------------------
+
+  function handleSuggestion(text) {
+    setInput(text);
+  }
+  // --------------------------------
+  // Create new chat
+  // --------------------------------
 
   function createNewChat() {
     const newChat = {
@@ -311,6 +386,10 @@ export default function Home() {
     }
   }
 
+  // --------------------------------
+  // Select chat
+  // --------------------------------
+
   function selectChat(chatId) {
     setCurrentChatId(chatId);
 
@@ -322,7 +401,14 @@ export default function Home() {
     }
   }
 
-  function updateMessages(chatId, newMessages) {
+  // --------------------------------
+  // Update messages
+  // --------------------------------
+
+  function updateMessages(
+    chatId,
+    newMessages
+  ) {
     setChats((previousChats) =>
       previousChats.map((chat) => {
         if (chat.id !== chatId) {
@@ -342,6 +428,18 @@ export default function Home() {
     );
   }
 
+  // --------------------------------
+  // Stop response
+  // --------------------------------
+  function handleStop() {
+    setIsLoading(false);
+  }
+
+
+  // --------------------------------
+  // Generate chat title
+  // --------------------------------
+
   function generateChatTitle(text) {
     const cleanedText = text
       .replace(/\s+/g, " ")
@@ -357,6 +455,10 @@ export default function Home() {
 
     return `${cleanedText.slice(0, 40)}...`;
   }
+
+  // --------------------------------
+  // Send message
+  // --------------------------------
 
   async function handleSendMessage() {
     if (!input.trim() || isLoading) {
@@ -377,13 +479,16 @@ export default function Home() {
       return;
     }
 
+    // User message
     const userMessage = {
       id: crypto.randomUUID(),
       role: "user",
       content: userText,
     };
 
-    const aiMessageId = crypto.randomUUID();
+    // AI message
+    const aiMessageId =
+      crypto.randomUUID();
 
     const aiMessage = {
       id: aiMessageId,
@@ -400,6 +505,7 @@ export default function Home() {
       aiMessage,
     ];
 
+    // Add user + AI message
     setChats((previousChats) =>
       previousChats.map((item) => {
         if (item.id !== currentChatId) {
@@ -408,21 +514,29 @@ export default function Home() {
 
         return {
           ...item,
+
           title:
             item.messages.length === 0 ||
               item.title === "New conversation"
               ? generateChatTitle(userText)
               : item.title,
+
           messages: updatedMessages,
         };
       })
     );
 
     try {
+      // --------------------------------
       // Step 1: Searching
+      // --------------------------------
+
       await wait(900);
 
+      // --------------------------------
       // Step 2: Reading
+      // --------------------------------
+
       updateMessages(
         currentChatId,
         (messages) =>
@@ -438,7 +552,10 @@ export default function Home() {
 
       await wait(900);
 
+      // --------------------------------
       // Step 3: Comparing
+      // --------------------------------
+
       updateMessages(
         currentChatId,
         (messages) =>
@@ -454,7 +571,10 @@ export default function Home() {
 
       await wait(900);
 
+      // --------------------------------
       // Step 4: Generating answer
+      // --------------------------------
+
       updateMessages(
         currentChatId,
         (messages) =>
@@ -468,9 +588,14 @@ export default function Home() {
           )
       );
 
-      const result = await sendMessage(userText);
+      // Get mock response
+      const result =
+        await sendMessage(userText);
 
+      // --------------------------------
       // Research completed
+      // --------------------------------
+
       updateMessages(
         currentChatId,
         (messages) =>
@@ -480,18 +605,43 @@ export default function Home() {
                 ...message,
                 searching: false,
                 searchStep: 5,
-                sources: result.sources || [],
+                sources:
+                  result.sources || [],
               }
               : message
           )
       );
 
+      // --------------------------------
       // Stream answer
-      let streamedText = "";
+      // --------------------------------
 
-      for (const character of result.response) {
-        streamedText += character;
+      if (streaming) {
+        let streamedText = "";
 
+        for (
+          const character of result.response
+        ) {
+          streamedText += character;
+
+          updateMessages(
+            currentChatId,
+            (messages) =>
+              messages.map((message) =>
+                message.id === aiMessageId
+                  ? {
+                    ...message,
+                    content:
+                      streamedText,
+                  }
+                  : message
+              )
+          );
+
+          await wait(12);
+        }
+      } else {
+        // Non-streaming response
         updateMessages(
           currentChatId,
           (messages) =>
@@ -499,13 +649,12 @@ export default function Home() {
               message.id === aiMessageId
                 ? {
                   ...message,
-                  content: streamedText,
+                  content:
+                    result.response,
                 }
                 : message
             )
         );
-
-        await wait(12);
       }
     } catch (error) {
       console.error(
@@ -533,11 +682,19 @@ export default function Home() {
     }
   }
 
+  // --------------------------------
+  // Regenerate response
+  // --------------------------------
+
   function handleRegenerate() {
     console.log(
       "Regenerate is not implemented yet."
     );
   }
+
+  // --------------------------------
+  // Delay helper
+  // --------------------------------
 
   async function wait(ms) {
     return new Promise((resolve) => {
@@ -545,13 +702,19 @@ export default function Home() {
     });
   }
 
+  // --------------------------------
+  // UI
+  // --------------------------------
+
   return (
     <main className="app">
       <Sidebar
         chats={chats}
         currentChatId={currentChatId}
         sidebarOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
+        onClose={() =>
+          setSidebarOpen(false)
+        }
         onNewChat={createNewChat}
         onSelectChat={selectChat}
         onOpenSettings={() =>
@@ -571,67 +734,24 @@ export default function Home() {
         />
 
         <ChatWindow
-          messages={currentChat?.messages || []}
+          messages={
+            currentChat?.messages || []
+          }
           isLoading={isLoading}
           onRegenerate={handleRegenerate}
+          onSuggestion={handleSuggestion}
         />
 
-        <div className="input-container">
-          <div className="message-input">
-            <button
-              className="input-icon"
-              aria-label="Attach file"
-              type="button"
-            >
-              +
-            </button>
-
-            <textarea
-              value={input}
-              onChange={(event) =>
-                setInput(event.target.value)
-              }
-              onKeyDown={(event) => {
-                if (
-                  event.key === "Enter" &&
-                  !event.shiftKey &&
-                  enterToSend
-                ) {
-                  event.preventDefault();
-                  handleSendMessage();
-                }
-              }}
-              placeholder="Ask anything..."
-              rows={1}
-            />
-
-            <button
-              className="input-icon"
-              aria-label="Voice input"
-              type="button"
-            >
-              🎙
-            </button>
-
-            <button
-              className="send-button"
-              onClick={handleSendMessage}
-              disabled={
-                !input.trim() || isLoading
-              }
-              aria-label="Send message"
-              type="button"
-            >
-              ↑
-            </button>
-          </div>
-
-          <div className="input-disclaimer">
-            AI Search Assistant can make mistakes.
-            Check important information.
-          </div>
-        </div>
+        <MessageInput
+          value={input}
+          onChange={setInput}
+          onSend={handleSendMessage}
+          onStop={handleStop}
+          isLoading={isLoading}
+          enterToSend={enterToSend}
+        />
       </section>
+
       <SettingsModal
         open={settingsOpen}
         onClose={() =>

@@ -9,6 +9,7 @@ export default function ChatWindow({
     messages,
     isLoading,
     onRegenerate,
+    onSuggestion,
 }) {
     const bottomRef = useRef(null);
 
@@ -37,44 +38,52 @@ export default function ChatWindow({
                     </p>
 
                     <div className="suggestions">
-                        <button className="suggestion-card">
-                            <strong>
-                                Research a topic
-                            </strong>
-
-                            <span>
-                                Find and summarize information
-                            </span>
+                        <button
+                            className="suggestion-card"
+                            onClick={() =>
+                                onSuggestion(
+                                    "Research a topic and summarize the most useful information"
+                                )
+                            }
+                        >
+                            <strong>Research a topic</strong>
+                            <span>Find and summarize information</span>
                         </button>
 
-                        <button className="suggestion-card">
-                            <strong>
-                                Compare products
-                            </strong>
-
-                            <span>
-                                Compare multiple options
-                            </span>
+                        <button
+                            className="suggestion-card"
+                            onClick={() =>
+                                onSuggestion(
+                                    "Compare the best options and explain the differences"
+                                )
+                            }
+                        >
+                            <strong>Compare products</strong>
+                            <span>Compare multiple options</span>
                         </button>
 
-                        <button className="suggestion-card">
-                            <strong>
-                                Find information
-                            </strong>
-
-                            <span>
-                                Search for useful sources
-                            </span>
+                        <button
+                            className="suggestion-card"
+                            onClick={() =>
+                                onSuggestion(
+                                    "Find useful information about this topic"
+                                )
+                            }
+                        >
+                            <strong>Find information</strong>
+                            <span>Search for useful sources</span>
                         </button>
 
-                        <button className="suggestion-card">
-                            <strong>
-                                Summarize something
-                            </strong>
-
-                            <span>
-                                Turn information into a summary
-                            </span>
+                        <button
+                            className="suggestion-card"
+                            onClick={() =>
+                                onSuggestion(
+                                    "Summarize the most important information about this topic"
+                                )
+                            }
+                        >
+                            <strong>Summarize something</strong>
+                            <span>Turn information into a summary</span>
                         </button>
                     </div>
                 </div>
