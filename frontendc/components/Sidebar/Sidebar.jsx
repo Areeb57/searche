@@ -12,6 +12,7 @@ export default function Sidebar({
     onClose,
     onNewChat,
     onSelectChat,
+    onOpenSettings,
 }) {
     return (
         <>
@@ -44,7 +45,11 @@ export default function Sidebar({
                 />
 
                 <div className="sidebar-bottom">
-                    <button className="sidebar-button">
+                    <button
+                        className="sidebar-button"
+                        onClick={onOpenSettings}
+                        type="button"
+                    >
                         <Settings size={18} />
                         <span>Settings</span>
                     </button>

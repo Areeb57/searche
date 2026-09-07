@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
 import ChatWindow from "@/components/Chat/ChatWindow";
+import SettingsModal from "@/components/Settings/SettingsModal";
 
 import { sendMessage } from "@/lib/api";
 
@@ -133,6 +134,18 @@ export default function Home() {
   const [isLoading, setIsLoading] =
     useState(false);
 
+  const [settingsOpen, setSettingsOpen] =
+    useState(false);
+
+  const [theme, setTheme] =
+    useState("system");
+
+  const [enterToSend, setEnterToSend] =
+    useState(true);
+
+  const [streaming, setStreaming] =
+    useState(true);
+
   const currentChat = chats.find(
     (chat) => chat.id === currentChatId
   );
@@ -167,6 +180,96 @@ export default function Home() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const savedTheme =
+        localStorage.getItem(
+          "ai-search-theme"
+        );
+
+      const savedEnterToSend =
+        localStorage.getItem(
+          "ai-search-enter-to-send"
+        );
+
+      const savedStreaming =
+        localStorage.getItem(
+          "ai-search-streaming"
+        );
+
+      if (savedTheme) {
+        setTheme(savedTheme);
+      }
+
+      if (savedEnterToSend !== null) {
+        setEnterToSend(
+          savedEnterToSend === "true"
+        );
+      }
+
+      if (savedStreaming !== null) {
+        setStreaming(
+          savedStreaming === "true"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Could not load settings:",
+        error
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const root =
+      document.documentElement;
+
+    if (theme === "system") {
+      root.removeAttribute("data-theme");
+    } else {
+      root.setAttribute(
+        "data-theme",
+        theme
+      );
+    }
+
+    localStorage.setItem(
+      "ai-search-theme",
+      theme
+    );
+  }, [theme]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    localStorage.setItem(
+      "ai-search-enter-to-send",
+      String(enterToSend)
+    );
+  }, [enterToSend]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    localStorage.setItem(
+      "ai-search-streaming",
+      String(streaming)
+    );
+  }, [streaming]);
+
 
   function createNewChat() {
     const newChat = {
@@ -435,7 +538,9 @@ export default function Home() {
         sidebarOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         onNewChat={createNewChat}
-        onSelectChat={selectChat}
+        onOpenSettings={() =>
+          setSettingsOpen(true)
+        }
       />
 
       <section className="main-area">
@@ -473,7 +578,8 @@ export default function Home() {
               onKeyDown={(event) => {
                 if (
                   event.key === "Enter" &&
-                  !event.shiftKey
+                  !event.shiftKey &&
+                  enterToSend
                 ) {
                   event.preventDefault();
                   handleSendMessage();
@@ -510,6 +616,20 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <SettingsModal
+        open={settingsOpen}
+        onClose={() =>
+          setSettingsOpen(false)
+        }
+        theme={theme}
+        onThemeChange={setTheme}
+        enterToSend={enterToSend}
+        onEnterToSendChange={
+          setEnterToSend
+        }
+        streaming={streaming}
+        onStreamingChange={setStreaming}
+      />
     </main>
   );
 }
