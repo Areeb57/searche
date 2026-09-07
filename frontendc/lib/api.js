@@ -56,28 +56,7 @@ For this prototype, my responses are generated from mock frontend data.
 
 Later, this function can be connected to your real backend without changing the chat interface.`;
 
-export async function sendMessage(message) {
-    const normalizedMessage = message.toLowerCase();
-
-    const matchingResponse = mockResponses.find(
-        (item) =>
-            item.keywords.some((keyword) =>
-                normalizedMessage.includes(keyword)
-            )
-    );
-
-    const response =
-        matchingResponse?.response || defaultResponse;
-
-    await new Promise((resolve) =>
-        setTimeout(resolve, 900)
-    );
-
-    return response;
-}
-
-
-export const mockSources = [
+const mockSources = [
     {
         id: "source-1",
         name: "Healthline",
@@ -87,6 +66,7 @@ export const mockSources = [
             "A guide to nutritious, calorie-dense foods that can support healthy weight gain.",
         url: "https://www.healthline.com",
     },
+
     {
         id: "source-2",
         name: "Medical News Today",
@@ -96,6 +76,7 @@ export const mockSources = [
             "Information about nutritious foods and eating strategies for increasing calorie intake.",
         url: "https://www.medicalnewstoday.com",
     },
+
     {
         id: "source-3",
         name: "WebMD",
@@ -105,6 +86,7 @@ export const mockSources = [
             "General information about nutritious eating and maintaining a balanced diet.",
         url: "https://www.webmd.com",
     },
+
     {
         id: "source-4",
         name: "Wikipedia",
@@ -115,3 +97,25 @@ export const mockSources = [
         url: "https://www.wikipedia.org",
     },
 ];
+
+export async function sendMessage(message) {
+    const normalizedMessage = message.toLowerCase();
+
+    const matchingResponse = mockResponses.find((item) =>
+        item.keywords.some((keyword) =>
+            normalizedMessage.includes(keyword)
+        )
+    );
+
+    const response =
+        matchingResponse?.response || defaultResponse;
+
+    await new Promise((resolve) =>
+        setTimeout(resolve, 900)
+    );
+
+    return {
+        response,
+        sources: mockSources,
+    };
+}

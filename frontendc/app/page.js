@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Sidebar from "@/components/Sidebar/Sidebar";
 import Header from "@/components/Header/Header";
@@ -8,10 +8,46 @@ import ChatWindow from "@/components/Chat/ChatWindow";
 
 import { sendMessage } from "@/lib/api";
 
+function getChatGroup(timestamp) {
+  const now = new Date();
+  const chatDate = new Date(timestamp);
+
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+
+  const startOfYesterday = new Date(startOfToday);
+  startOfYesterday.setDate(
+    startOfYesterday.getDate() - 1
+  );
+
+  const sevenDaysAgo = new Date(startOfToday);
+  sevenDaysAgo.setDate(
+    sevenDaysAgo.getDate() - 7
+  );
+
+  if (chatDate >= startOfToday) {
+    return "Today";
+  }
+
+  if (chatDate >= startOfYesterday) {
+    return "Yesterday";
+  }
+
+  if (chatDate >= sevenDaysAgo) {
+    return "Previous 7 Days";
+  }
+
+  return "Older";
+}
+
 const initialChats = [
   {
     id: "chat-1",
     title: "AI Search Assistant",
+    createdAt: Date.now(),
     group: "Today",
     messages: [],
   },
@@ -19,6 +55,7 @@ const initialChats = [
   {
     id: "chat-2",
     title: "React project help",
+    createdAt: Date.now() - 1000 * 60 * 30,
     group: "Today",
     messages: [
       {
@@ -38,6 +75,7 @@ const initialChats = [
   {
     id: "chat-3",
     title: "Best laptops",
+    createdAt: Date.now() - 1000 * 60 * 60,
     group: "Today",
     messages: [],
   },
@@ -45,6 +83,8 @@ const initialChats = [
   {
     id: "chat-4",
     title: "Python project",
+    createdAt:
+      Date.now() - 1000 * 60 * 60 * 24,
     group: "Yesterday",
     messages: [],
   },
@@ -52,14 +92,35 @@ const initialChats = [
   {
     id: "chat-5",
     title: "Web development",
+    createdAt:
+      Date.now() - 1000 * 60 * 60 * 25,
     group: "Yesterday",
     messages: [],
   },
 ];
 
 export default function Home() {
-  const [chats, setChats] =
-    useState(initialChats);
+  const [chats, setChats] = useState(() => {
+    if (typeof window === "undefined") {
+      return initialChats;
+    }
+
+    try {
+      const savedChats =
+        localStorage.getItem("ai-search-chats");
+
+      if (savedChats) {
+        return JSON.parse(savedChats);
+      }
+    } catch (error) {
+      console.error(
+        "Could not load saved chats:",
+        error
+      );
+    }
+
+    return initialChats;
+  });
 
   const [currentChatId, setCurrentChatId] =
     useState("chat-1");
@@ -67,8 +128,7 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] =
     useState(false);
 
-  const [input, setInput] =
-    useState("");
+  const [input, setInput] = useState("");
 
   const [isLoading, setIsLoading] =
     useState(false);
@@ -77,11 +137,43 @@ export default function Home() {
     (chat) => chat.id === currentChatId
   );
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        "ai-search-chats",
+        JSON.stringify(chats)
+      );
+    } catch (error) {
+      console.error(
+        "Could not save chats:",
+        error
+      );
+    }
+  }, [chats]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setChats((previousChats) =>
+        previousChats.map((chat) => ({
+          ...chat,
+          group: getChatGroup(chat.createdAt),
+        }))
+      );
+    }, 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   function createNewChat() {
     const newChat = {
-      id: `chat-${Date.now()}`,
-      title: "New Chat",
-      group: "Today",
+      id: crypto.randomUUID(),
+      title: "New conversation",
+      createdAt: Date.now(),
+      group: getChatGroup(Date.now()),
       messages: [],
     };
 
@@ -91,135 +183,248 @@ export default function Home() {
     ]);
 
     setCurrentChatId(newChat.id);
+    setInput("");
 
-    setSidebarOpen(false);
+    if (
+      typeof window !== "undefined" &&
+      window.innerWidth <= 768
+    ) {
+      setSidebarOpen(false);
+    }
   }
 
   function selectChat(chatId) {
     setCurrentChatId(chatId);
-    setSidebarOpen(false);
+
+    if (
+      typeof window !== "undefined" &&
+      window.innerWidth <= 768
+    ) {
+      setSidebarOpen(false);
+    }
   }
 
   function updateMessages(chatId, newMessages) {
     setChats((previousChats) =>
-      previousChats.map((chat) =>
-        chat.id === chatId
-          ? {
-            ...chat,
-            messages: newMessages,
-          }
-          : chat
-      )
+      previousChats.map((chat) => {
+        if (chat.id !== chatId) {
+          return chat;
+        }
+
+        const messages =
+          typeof newMessages === "function"
+            ? newMessages(chat.messages)
+            : newMessages;
+
+        return {
+          ...chat,
+          messages,
+        };
+      })
     );
   }
 
-  async function handleSendMessage() {
-    const trimmedInput = input.trim();
+  function generateChatTitle(text) {
+    const cleanedText = text
+      .replace(/\s+/g, " ")
+      .trim();
 
-    if (!trimmedInput || isLoading) {
+    if (!cleanedText) {
+      return "New conversation";
+    }
+
+    if (cleanedText.length <= 40) {
+      return cleanedText;
+    }
+
+    return `${cleanedText.slice(0, 40)}...`;
+  }
+
+  async function handleSendMessage() {
+    if (!input.trim() || isLoading) {
       return;
     }
 
-    const userMessage = {
-      id: `message-${Date.now()}`,
-      role: "user",
-      content: trimmedInput,
-    };
-
-    const existingMessages =
-      currentChat?.messages || [];
-
-    const messagesWithUser = [
-      ...existingMessages,
-      userMessage,
-    ];
-
-    updateMessages(
-      currentChatId,
-      messagesWithUser
-    );
+    const userText = input.trim();
 
     setInput("");
     setIsLoading(true);
 
+    const chat = chats.find(
+      (item) => item.id === currentChatId
+    );
+
+    if (!chat) {
+      setIsLoading(false);
+      return;
+    }
+
+    const userMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: userText,
+    };
+
+    const aiMessageId = crypto.randomUUID();
+
+    const aiMessage = {
+      id: aiMessageId,
+      role: "assistant",
+      content: "",
+      searching: true,
+      searchStep: 1,
+      sources: [],
+    };
+
+    const updatedMessages = [
+      ...chat.messages,
+      userMessage,
+      aiMessage,
+    ];
+
+    setChats((previousChats) =>
+      previousChats.map((item) => {
+        if (item.id !== currentChatId) {
+          return item;
+        }
+
+        return {
+          ...item,
+          title:
+            item.messages.length === 0 ||
+              item.title === "New conversation"
+              ? generateChatTitle(userText)
+              : item.title,
+          messages: updatedMessages,
+        };
+      })
+    );
+
     try {
-      const response =
-        await sendMessage(trimmedInput);
+      // Step 1: Searching
+      await wait(900);
 
-      const aiMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: "",
-        searching: true,
-        searchStep: 1,
-      };
-
-      updateMessages(currentChatId, [
-        ...messagesWithUser,
-        aiMessage,
-      ]);
-
-      await streamResponse(
+      // Step 2: Reading
+      updateMessages(
         currentChatId,
-        messagesWithUser,
-        aiMessage,
-        response
+        (messages) =>
+          messages.map((message) =>
+            message.id === aiMessageId
+              ? {
+                ...message,
+                searchStep: 2,
+              }
+              : message
+          )
       );
+
+      await wait(900);
+
+      // Step 3: Comparing
+      updateMessages(
+        currentChatId,
+        (messages) =>
+          messages.map((message) =>
+            message.id === aiMessageId
+              ? {
+                ...message,
+                searchStep: 3,
+              }
+              : message
+          )
+      );
+
+      await wait(900);
+
+      // Step 4: Generating answer
+      updateMessages(
+        currentChatId,
+        (messages) =>
+          messages.map((message) =>
+            message.id === aiMessageId
+              ? {
+                ...message,
+                searchStep: 4,
+              }
+              : message
+          )
+      );
+
+      const result = await sendMessage(userText);
+
+      // Research completed
+      updateMessages(
+        currentChatId,
+        (messages) =>
+          messages.map((message) =>
+            message.id === aiMessageId
+              ? {
+                ...message,
+                searching: false,
+                searchStep: 5,
+                sources: result.sources || [],
+              }
+              : message
+          )
+      );
+
+      // Stream answer
+      let streamedText = "";
+
+      for (const character of result.response) {
+        streamedText += character;
+
+        updateMessages(
+          currentChatId,
+          (messages) =>
+            messages.map((message) =>
+              message.id === aiMessageId
+                ? {
+                  ...message,
+                  content: streamedText,
+                }
+                : message
+            )
+        );
+
+        await wait(12);
+      }
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Failed to send message:",
+        error
+      );
 
-      const errorMessage = {
-        id: `message-${Date.now()}-error`,
-        role: "assistant",
-        content:
-          "Something went wrong while generating the response.",
-      };
-
-      updateMessages(currentChatId, [
-        ...messagesWithUser,
-        errorMessage,
-      ]);
+      updateMessages(
+        currentChatId,
+        (messages) =>
+          messages.map((message) =>
+            message.id === aiMessageId
+              ? {
+                ...message,
+                searching: false,
+                searchStep: 5,
+                content:
+                  "Sorry, something went wrong while generating the response.",
+              }
+              : message
+          )
+      );
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function streamResponse(
-    chatId,
-    previousMessages,
-    aiMessage,
-    response
-  ) {
-    let currentText = "";
-
-    for (const character of response) {
-      currentText += character;
-
-      const updatedMessage = {
-        ...aiMessage,
-        content: currentText,
-      };
-
-      updateMessages(chatId, [
-        ...previousMessages,
-        updatedMessage,
-      ]);
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, 12)
-      );
-    }
-  }
-
-  function handleRegenerate(messageId) {
+  function handleRegenerate() {
     console.log(
-      "Regenerate requested:",
-      messageId
+      "Regenerate is not implemented yet."
     );
   }
 
-  function handleSuggestion(text) {
-    setInput(text);
+  async function wait(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
   }
 
   return (
@@ -245,9 +450,7 @@ export default function Home() {
         />
 
         <ChatWindow
-          messages={
-            currentChat?.messages || []
-          }
+          messages={currentChat?.messages || []}
           isLoading={isLoading}
           onRegenerate={handleRegenerate}
         />
@@ -257,6 +460,7 @@ export default function Home() {
             <button
               className="input-icon"
               aria-label="Attach file"
+              type="button"
             >
               +
             </button>
@@ -282,6 +486,7 @@ export default function Home() {
             <button
               className="input-icon"
               aria-label="Voice input"
+              type="button"
             >
               🎙
             </button>
@@ -293,6 +498,7 @@ export default function Home() {
                 !input.trim() || isLoading
               }
               aria-label="Send message"
+              type="button"
             >
               ↑
             </button>

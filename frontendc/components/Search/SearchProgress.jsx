@@ -10,7 +10,9 @@ const steps = [
     "Generating answer",
 ];
 
-export default function SearchProgress({ currentStep = 3 }) {
+export default function SearchProgress({
+    currentStep = 1,
+}) {
     const [expanded, setExpanded] = useState(true);
 
     return (
@@ -21,7 +23,12 @@ export default function SearchProgress({ currentStep = 3 }) {
             >
                 <div className="search-progress-title">
                     <span className="search-status-dot" />
-                    <span>Researching your question...</span>
+
+                    <span>
+                        {currentStep >= 5
+                            ? "Research completed"
+                            : "Researching your question..."}
+                    </span>
                 </div>
 
                 <ChevronDown
@@ -36,8 +43,11 @@ export default function SearchProgress({ currentStep = 3 }) {
                     {steps.map((step, index) => {
                         const stepNumber = index + 1;
 
-                        const completed = stepNumber < currentStep;
-                        const active = stepNumber === currentStep;
+                        const completed =
+                            currentStep > stepNumber;
+
+                        const active =
+                            currentStep === stepNumber;
 
                         return (
                             <div

@@ -19,7 +19,7 @@ export default function AIMessage({
                     AI Search
                 </div>
 
-                {message.searching && (
+                {message.searchStep && (
                     <SearchProgress
                         currentStep={message.searchStep || 4}
                     />
