@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  # PostgreSQL with pgvector extension pre-installed
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: research_agent_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: research_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Research Agent FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: research_agent_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@db:5432/research_db
+      - LLM_PROVIDER=mock
+      - SEARCH_PROVIDER=duckduckgo
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
